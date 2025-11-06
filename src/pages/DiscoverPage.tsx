@@ -51,7 +51,15 @@ export default function DiscoverPage() {
                     If you see a red card or a GPT that won't load, it may not be set to public.
                     If you're the creator, click the warning icon, open the GPT in ChatGPT, go to
                     settings, and make sure it's set to <span className="font-semibold">"Anyone with the link"</span>.
-                    Then click the warning icon again to mark it as working.
+                    Then click the warning icon again to mark it as working.{' '}
+                    <a
+                      href="https://eriksheagren.notion.site/Sharing-GPTs-2a3b20b9060b8011a4eafcafc6ed406e?source=copy_link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-amber-900 underline hover:text-amber-950 transition-colors"
+                    >
+                      Learn how to change access settings
+                    </a>
                   </p>
                 </div>
                 <button
