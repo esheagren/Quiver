@@ -3,27 +3,31 @@ import { supabase } from '@/lib/supabase'
 import type { PromptWithMetadata, SortOption, EducationTag } from '@/types'
 import { useUserToken } from '@/hooks/useUserToken'
 
+type FilterMode = 'or' | 'and'
+
 interface UsePromptsOptions {
   savedOnly?: boolean
   tags?: EducationTag[]
+  filterMode?: FilterMode
   sort?: SortOption
   searchQuery?: string
 }
 
 export function usePrompts(options: UsePromptsOptions = {}) {
-  const { savedOnly = false, tags = [], sort = 'recent', searchQuery = '' } = options
+  const { savedOnly = false, tags = [], filterMode = 'or', sort = 'recent', searchQuery = '' } = options
   const userToken = useUserToken()
 
   console.log('[usePrompts] Hook called with:', {
     savedOnly,
     tags,
+    filterMode,
     sort,
     searchQuery,
     userToken,
   })
 
   return useQuery({
-    queryKey: ['prompts', savedOnly, tags, sort, searchQuery, userToken],
+    queryKey: ['prompts', savedOnly, tags, filterMode, sort, searchQuery, userToken],
     queryFn: async () => {
       console.log('[usePrompts] ✅ Query function EXECUTING')
       console.log('[usePrompts] Starting query function')
@@ -74,11 +78,19 @@ export function usePrompts(options: UsePromptsOptions = {}) {
         console.log('[usePrompts] Fetching all prompts (not savedOnly)')
       }
 
-      // Filter by tags (OR logic - any matching tag)
+      // Filter by tags (AND or OR logic)
       if (tags.length > 0) {
-        console.log('[usePrompts] Filtering by tags:', tags)
-        // Use overlap operator for array matching (OR logic)
-        query = query.overlaps('tags', tags)
+        console.log('[usePrompts] Filtering by tags:', tags, 'mode:', filterMode)
+        if (filterMode === 'and') {
+          // AND logic: prompt must have ALL selected tags
+          // For AND logic, we'll filter in JavaScript after fetching
+          // First get prompts that have at least one of the tags (to reduce dataset)
+          query = query.overlaps('tags', tags)
+        } else {
+          // OR logic: prompt can have ANY of the selected tags
+          // Use overlap operator for array matching
+          query = query.overlaps('tags', tags)
+        }
       }
 
       // Search by name or description
@@ -103,12 +115,24 @@ export function usePrompts(options: UsePromptsOptions = {}) {
         throw error
       }
 
-      // Get saved and upvoted status for each prompt
-      if (userToken && data) {
-        const promptIds = data.map((p) => p.id)
+      // Apply AND logic filtering if needed (must be done after fetching)
+      let filteredData = data || []
+      if (filterMode === 'and' && tags.length > 0 && filteredData.length > 0) {
+        console.log('[usePrompts] Applying AND logic filter to', filteredData.length, 'prompts')
+        filteredData = filteredData.filter((prompt) => {
+          const promptTags = prompt.tags || []
+          // Check if prompt has ALL selected tags
+          return tags.every((tag) => promptTags.includes(tag))
+        })
+        console.log('[usePrompts] After AND filter:', filteredData.length, 'prompts remain')
+      }
+
+      // Get saved and upvoted status for each prompt, and saved counts
+      if (userToken && filteredData) {
+        const promptIds = filteredData.map((p) => p.id)
         console.log('[usePrompts] Fetching saved/upvoted status for prompts:', promptIds)
 
-        const [savedResponse, upvotedResponse] = await Promise.all([
+        const [savedResponse, upvotedResponse, savedCountsResponse] = await Promise.all([
           supabase
             .from('saved_prompts')
             .select('prompt_id')
@@ -119,23 +143,37 @@ export function usePrompts(options: UsePromptsOptions = {}) {
             .select('prompt_id')
             .eq('user_token', userToken)
             .in('prompt_id', promptIds),
+          supabase
+            .from('saved_prompts')
+            .select('prompt_id')
+            .in('prompt_id', promptIds),
         ])
 
-        console.log('[usePrompts] Saved/upvoted responses:', { savedResponse, upvotedResponse })
+        console.log('[usePrompts] Saved/upvoted responses:', { savedResponse, upvotedResponse, savedCountsResponse })
 
         const savedIds = new Set(savedResponse.data?.map((s) => s.prompt_id) || [])
         const upvotedIds = new Set(upvotedResponse.data?.map((u) => u.prompt_id) || [])
+        
+        // Count saved occurrences for each prompt
+        const savedCountsMap = new Map<string, number>()
+        savedCountsResponse.data?.forEach((s) => {
+          const count = savedCountsMap.get(s.prompt_id) || 0
+          savedCountsMap.set(s.prompt_id, count + 1)
+        })
 
-        const promptsWithMetadata: PromptWithMetadata[] = data.map((prompt) => ({
+        const promptsWithMetadata: PromptWithMetadata[] = filteredData.map((prompt) => ({
           ...prompt,
           is_saved: savedIds.has(prompt.id),
           is_upvoted: upvotedIds.has(prompt.id),
+          saved_count: savedCountsMap.get(prompt.id) || 0,
         }))
 
         // Sort prompts
         let sortedPrompts = [...promptsWithMetadata]
         if (sort === 'upvoted') {
           sortedPrompts.sort((a, b) => b.upvotes - a.upvotes)
+        } else if (sort === 'most-used') {
+          sortedPrompts.sort((a, b) => b.uses - a.uses)
         } else if (sort === 'alphabetical') {
           sortedPrompts.sort((a, b) =>
             (a.generated_name || '').localeCompare(b.generated_name || '')
@@ -147,17 +185,37 @@ export function usePrompts(options: UsePromptsOptions = {}) {
         return sortedPrompts
       }
 
+      // Get saved counts for prompts (even without user token)
+      const promptIds = filteredData.map((p) => p.id)
+      const { data: savedCountsData } = await supabase
+        .from('saved_prompts')
+        .select('prompt_id')
+        .in('prompt_id', promptIds)
+      
+      const savedCountsMap = new Map<string, number>()
+      savedCountsData?.forEach((s) => {
+        const count = savedCountsMap.get(s.prompt_id) || 0
+        savedCountsMap.set(s.prompt_id, count + 1)
+      })
+
       // Sort prompts
-      let sortedPrompts = [...(data || [])]
+      let sortedPrompts = [...filteredData]
       if (sort === 'upvoted') {
         sortedPrompts.sort((a, b) => b.upvotes - a.upvotes)
+      } else if (sort === 'most-used') {
+        sortedPrompts.sort((a, b) => b.uses - a.uses)
       } else if (sort === 'alphabetical') {
         sortedPrompts.sort((a, b) =>
           (a.generated_name || '').localeCompare(b.generated_name || '')
         )
       }
 
-      const result = sortedPrompts.map((p) => ({ ...p, is_saved: false, is_upvoted: false }))
+      const result = sortedPrompts.map((p) => ({ 
+        ...p, 
+        is_saved: false, 
+        is_upvoted: false,
+        saved_count: savedCountsMap.get(p.id) || 0,
+      }))
       console.log('[usePrompts] Returning prompts (no user token):', result.length, 'prompts')
       return result
     },

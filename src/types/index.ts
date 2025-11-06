@@ -9,6 +9,8 @@ export interface Prompt {
   tags: EducationTag[]
   user_token: string
   upvotes: number
+  uses: number
+  is_broken: boolean
   created_at: string
   updated_at: string
 }
@@ -41,9 +43,10 @@ export interface UserProfile {
 export interface PromptWithMetadata extends Prompt {
   is_saved?: boolean
   is_upvoted?: boolean
+  saved_count?: number
 }
 
-export type SortOption = 'recent' | 'upvoted' | 'alphabetical'
+export type SortOption = 'recent' | 'upvoted' | 'most-used' | 'alphabetical'
 
 export interface AddPromptData {
   url: string

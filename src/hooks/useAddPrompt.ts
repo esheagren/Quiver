@@ -60,11 +60,16 @@ export function useAddPrompt() {
 
       if (saveError) throw saveError
 
-      return prompt
+      // Return prompt with metadata flags
+      return {
+        ...prompt,
+        is_saved: true,
+        is_upvoted: false,
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prompts'] })
-      toast.success('Prompt added and saved to your bank!')
+      // Toast is handled in AddPromptDialog with action button
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to add prompt')
