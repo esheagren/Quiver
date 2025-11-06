@@ -10,7 +10,7 @@ import { Compass, AlertTriangle, X } from 'lucide-react'
 export default function DiscoverPage() {
   const [selectedTags, setSelectedTags] = useState<EducationTag[]>([])
   const [filterMode, setFilterMode] = useState<'or' | 'and'>('or')
-  const [sort, setSort] = useState<SortOption>('most-used')
+  const [sort] = useState<SortOption>('most-used')
   const [selectedPrompt, setSelectedPrompt] = useState<PromptWithMetadata | null>(null)
   const [showBanner, setShowBanner] = useState(true)
 

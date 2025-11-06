@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { PromptWithMetadata, SortOption, EducationTag } from '@/types'
@@ -26,7 +27,7 @@ export function usePrompts(options: UsePromptsOptions = {}) {
     userToken,
   })
 
-  return useQuery({
+  const queryResult = useQuery({
     queryKey: ['prompts', savedOnly, tags, filterMode, sort, searchQuery, userToken],
     queryFn: async () => {
       console.log('[usePrompts] ✅ Query function EXECUTING')
@@ -220,12 +221,24 @@ export function usePrompts(options: UsePromptsOptions = {}) {
       return result
     },
     enabled: !!userToken || !savedOnly,
-    onError: (error) => {
-      console.error('[usePrompts] React Query error:', error)
-    },
-    onSuccess: (data) => {
-      console.log('[usePrompts] React Query success:', data?.length, 'prompts')
-    },
   })
+
+  useEffect(() => {
+    if (queryResult.error) {
+      console.error('[usePrompts] React Query error:', queryResult.error)
+    }
+  }, [queryResult.error])
+
+  useEffect(() => {
+    if (queryResult.data) {
+      console.log(
+        '[usePrompts] React Query success:',
+        (queryResult.data as PromptWithMetadata[] | undefined)?.length ?? 0,
+        'prompts'
+      )
+    }
+  }, [queryResult.data])
+
+  return queryResult
 }
 

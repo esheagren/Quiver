@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase'
 import { useUserToken } from '@/hooks/useUserToken'
 import { toast } from 'sonner'
-import { EDUCATION_TAGS } from '@/lib/constants'
 
 const profileSchema = z.object({
   display_name: z.string().optional(),
@@ -43,9 +42,7 @@ export default function ProfilePage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
     setValue,
-    watch,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
   })

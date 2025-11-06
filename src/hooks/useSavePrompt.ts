@@ -51,7 +51,7 @@ export function useSavePrompt() {
 
       return { previousPrompts }
     },
-    onError: (err, variables, context) => {
+    onError: (_error, _variables, context) => {
       // Rollback on error
       if (context?.previousPrompts) {
         queryClient.setQueryData(['prompts'], context.previousPrompts)

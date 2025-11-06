@@ -55,7 +55,7 @@ export function useUpvotePrompt() {
 
       return { previousPrompts }
     },
-    onError: (err, variables, context) => {
+    onError: (_error, _variables, context) => {
       if (context?.previousPrompts) {
         queryClient.setQueryData(['prompts'], context.previousPrompts)
       }

@@ -5,10 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      // Enable Fast Refresh for better HMR experience
-      fastRefresh: true,
-    }),
+    react(),
   ],
   resolve: {
     alias: {

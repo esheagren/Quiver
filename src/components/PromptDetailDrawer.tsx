@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from './ui/sheet'
+import { Sheet, SheetContent, SheetHeader } from './ui/sheet'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Input } from './ui/input'
@@ -27,7 +21,6 @@ import {
 } from './ui/dropdown-menu'
 import { Bookmark, Copy, ExternalLink, X, Plus } from 'lucide-react'
 import type { PromptWithMetadata } from '@/types'
-import { formatDate } from '@/lib/utils'
 import { useSavePrompt } from '@/hooks/useSavePrompt'
 import { useUpdatePrompt } from '@/hooks/useUpdatePrompt'
 import { toast } from 'sonner'
@@ -138,10 +131,10 @@ export default function PromptDetailDrawer({
   }
 
   const handleRemoveTag = (tagToRemove: EducationTag) => {
-    setEditedTags(editedTags.filter(tag => tag !== tagToRemove))
+    setEditedTags(editedTags.filter((tag) => tag !== tagToRemove))
   }
 
-  const availableTags = EDUCATION_TAGS.filter(tag => !editedTags.includes(tag))
+  const availableTags = EDUCATION_TAGS.filter((tag) => !editedTags.includes(tag))
 
   // Handle ESC key
   useEffect(() => {

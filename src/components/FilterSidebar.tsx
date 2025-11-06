@@ -43,8 +43,9 @@ export default function FilterSidebar({
   }
 
   const getCategoryTagCount = (category: TagCategory) => {
-    const categoryTags = TAG_CATEGORIES[category]
-    return selectedTags.filter((tag) => categoryTags.includes(tag)).length
+    const categoryTags = TAG_CATEGORIES[category] as readonly EducationTag[]
+    const categoryTagSet = new Set<EducationTag>(categoryTags)
+    return selectedTags.filter((tag) => categoryTagSet.has(tag)).length
   }
 
   return (
@@ -122,7 +123,7 @@ export default function FilterSidebar({
           {(Object.keys(TAG_CATEGORIES) as TagCategory[]).map((category) => {
             const isExpanded = expandedCategories.has(category)
             const tagCount = getCategoryTagCount(category)
-            const tags = TAG_CATEGORIES[category]
+            const tags = TAG_CATEGORIES[category] as readonly EducationTag[]
 
             return (
               <div key={category} className="border border-[#D3D6DB] rounded-lg overflow-hidden">

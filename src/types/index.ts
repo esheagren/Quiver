@@ -1,4 +1,5 @@
 import type { EducationTag } from '@/lib/constants'
+export type { EducationTag }
 
 export interface Prompt {
   id: string
