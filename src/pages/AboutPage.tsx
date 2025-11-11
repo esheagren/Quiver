@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Save, Telescope, Zap } from 'lucide-react'
+import { Save, Telescope, Zap, Linkedin, Github } from 'lucide-react'
 import quiverLogo from '../../QuiverLogo.png'
 
 export default function AboutPage() {
@@ -139,8 +139,32 @@ export default function AboutPage() {
       {/* Footer */}
       <footer className="py-8 border-t border-gray-200 bg-white/50">
         <div className="container mx-auto px-6">
-          <div className="text-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} Quiver. All rights reserved.</p>
+          <div className="flex flex-col items-center space-y-4">
+            {/* Social Links */}
+            <div className="flex gap-4">
+              <a
+                href="https://www.linkedin.com/in/erik-sheagren-40800a179/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+              <a
+                href="https://github.com/esheagren"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label="GitHub"
+              >
+                <Github className="w-5 h-5" />
+              </a>
+            </div>
+            {/* Copyright */}
+            <div className="text-center text-sm text-gray-500">
+              <p>&copy; {new Date().getFullYear()} Quiver. All rights reserved.</p>
+            </div>
           </div>
         </div>
       </footer>
